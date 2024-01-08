@@ -60,13 +60,16 @@ def derivative(function_to_derive):
     else:
         return "something ain't right...."
     
-def apply_product_rule(fx, gx):
+def apply_product_rule(fx, gx): 
+    #applies the product rule, by taking two functions as an input
     return f"{derivative(fx)}*{gx} + {fx}*{derivative(gx)}"
 
 def apply_quotient_rule(fx, gx):
+    #applies the quotient rule, by taking two functions as an input
     return f"({derivative(fx)}*{gx} - {fx}*{derivative(gx)}/{gx}^2"
 
 def apply_chain_rule(fx):
+    #applies the chain rule to function after they are derived, in order to account for nested functions
     index_of_open_bracket = 0
     index_of_closed_bracket = 0
     bracket_found = False
@@ -86,7 +89,7 @@ def apply_chain_rule(fx):
         return f"{fx}"
 
 def help_with_power_functions(fx):
-    #I assume that the function being provided has an exponent
+    #Applies the power rule to a function
     index_of_power = 0
     for i in range(len(fx)):
         if fx[i] == "^":
@@ -115,6 +118,7 @@ def help_with_power_functions(fx):
     return derivative
             
 def find_function(fx):
+    #determines what inner function of fx to derive first and returns the derivative, while applying the chain rule
 
     list_with_base_functions = []
 
@@ -167,7 +171,7 @@ def find_function(fx):
         return f"e^{fx[first_index_chain : last_index_chain]} * ({derivative(fx[first_index_chain : last_index_chain])})"    
 
 def do_apply_product(fx):
-    #we need to figure out which characters aren't inside brackets
+    #determines if the product rule needs to be applied to the current function. Returns the index of the multiplication symbol if True and False if not.
     list_with_index = []
     for i in range(len(fx)):
         if fx[i] in possible_operations:
@@ -206,7 +210,7 @@ def do_apply_product(fx):
         return False
                   
 def do_apply_quotient(fx):
-    #we need to figure out which characters aren't inside brackets
+    #determines if the quotient rule needs to be applied to the current function. Returns the index of the division symbol if True and False if not.
     list_with_index = []
     for i in range(len(fx)):
         if fx[i] in possible_operations:
@@ -245,35 +249,14 @@ def do_apply_quotient(fx):
         return False
 
 def do_addition_or_substraction(fx):
+    #checks if there is a "+" or "-" symbol in the function in order to apply the sum or difference rule
     for i in range(len(fx)):
         if fx[i] == "+" or fx[i] == "-":
             return True
     return False
 
-'''def check_if_polynomial(fx):
-    #entire part for polynomials
-        #check for "x" inside brackets and insure that there is no "^" following x, if false, call help_with()
-        # return the value before "x"
-    
-    list_of_instances_of_x = []
-    for i in range(len(fx)):
-        if fx[i] == "x":
-            list_of_instances_of_x.append(i)
-
-    checked_back = False
-    checked_forward = False
-    for i in range(len(fx)):
-        current_location = list_of_instances_of_x[i]
-        while not checked_forward and not checked_back:   
-            if fx[(current_location - 1)] in list_for_cancel_poly or fx[(current_location + 1)] in list_for_cancel_poly:
-                return False
-            if fx[(current_location - 1)] in list_for_check_poly:
-                checked_forward = True
-            if fx[(current_location + 1)] in list_for_check_poly:
-                checked_back = True
-    return True '''
-
 def check_if_polynomial(fx):
+    #checks if fx is a polynomial function like x^(3) or 2x or -3x^(4)
     if "^" in fx:
         return fx
     index_of_x = 0
@@ -300,13 +283,14 @@ def check_if_polynomial(fx):
         return fx
 
 def check_if_base_other_than_polynomial(fx):
-    #for other functions just check if they are the same, we need to call this before the check_if_poly()
+    #checks if fx is part of the base functions in the dict_with_base_functions dictionnary
     for i in range(len(list_of_pre)):
             if list_of_pre[i] in fx:
                 return True
     return False
 
 def addition_or_substraction_derivative(fx):
+    #applies the sum or difference rule to fx
     list_with_index = []
     for i in range(len(fx)):
         if fx[i] == "+" or fx[i] == "-":
@@ -340,8 +324,7 @@ def addition_or_substraction_derivative(fx):
     return f"{derivative(fx[: index_of_symbol])} {fx[index_of_symbol]} {derivative(fx[index_of_symbol + 1 :])}"
     
 def remove_extra_brackets(fx):
-  
-#make sure there are an even ammount of brackets
+#removes any unecessary brackets. To be called after every recursive call of derivative()
     bracket_count = 0
     for i in range(len(fx)):
         if fx[i] == "(":
@@ -356,8 +339,6 @@ def remove_extra_brackets(fx):
         fx.pop(-1)
     fx = "".join(fx)
     
-#check if we can remove some brackets (make sure it works with cos(x) and sin(x)
-    #check which brackets are part of a sin or cos function
     indexes_of_protected_brackets = []
     i = 0
     while i < len(fx) and len(fx) >= 3:
@@ -377,8 +358,7 @@ def remove_extra_brackets(fx):
                     done_with_function = True
                 i += 1
         i += 1
-    
-    #check which brackets are part of an exponent or ln
+
     i = 0
     while i < len(fx) and len(fx) >= 3:
         if fx[i] == "^" or fx[i] == "n":
@@ -415,21 +395,7 @@ def remove_extra_brackets(fx):
             break
         
     fx = "".join(fx)
-    return fx
-
-def find_first_term_to_derive(fx):
-    first_index_of_term = fx[0]
-    for i in range(len(fx)):
-        if fx[i] == ")":
-            if i == len(fx) - 1:
-                last_index_of_term = fx[i]
-                break
-            elif fx[i+1] == "+" or fx[i+1] == "-":
-                last_index_of_term = i
-                break
-    term_to_derive = fx[first_index_of_term : last_index_of_term + 1]
-    return f"{derivative(term_to_derive)}{fx[last_index_of_term + 1]}{derivative(fx[last_index_of_term + 1 :])}"
-            
+    return fx         
 
 function_to_derive = input("Please input your function here: ")
 
