@@ -11,7 +11,7 @@ int main(void)
     {
           credit_number = get_long("What is your credit card number: \n");
     }
-    while (credit_number >= 1*pow(10,17) && credit_number <= 1*pow(10,13));
+    while (credit_number >= 1*pow(10,17) && credit_number <= 1*pow(10,13));  //get user's credit card number
 
     if (CheckSum(credit_number))
     {
@@ -20,6 +20,10 @@ int main(void)
     long visa_digits = 1000000000000;
     long calculation_american_express = credit_number - (credit_number % (american_express_digits/10));
     long calculation_mastercard = credit_number - (credit_number % (mastercard_digits/10));
+        //check which provider the credit car number belongs too, based on length:
+        //(mastercard = 16 digits, beginning with a 5), 
+        //(american express = 14 digits, beginning with a 34 or 37),
+        //(visa = 15 digits, beginning with a 4)
         if (calculation_mastercard == 5.1*(pow(10, 15)) || calculation_mastercard == 5.2*(pow(10, 15)) || calculation_mastercard == 5.3*(pow(10, 15)) || calculation_mastercard == 5.4*(pow(10, 15)) || calculation_mastercard == 5.5*(pow(10, 15)))
           {
           if (credit_number % (mastercard_digits/10) < 1.0000000000000001*pow(10,16) || credit_number % (mastercard_digits/10) > 0.9999999999999999*pow(10,15))
@@ -49,13 +53,17 @@ int main(void)
      }
 }
 
-bool CheckSum(credit_number)
+bool CheckSum(credit_number) 
+//verifies if a credit car number is valid,
+//Step 1: Take the sum of all the even digits, which have been doubled | sum1
+//Step 2: Take the sum of all the odd digits (untouched) | sum2
+//Step 3: Take the sum of sum1 and sum2 and see if it is cleanly divisible by 10
 {
     int iteration_count = 0;
     int iteration_count2 = 0;
     int first_sum = 0;
     int second_sum = 0;
-    for(long i = 100; i < credit_number*10; i *= 100)
+    for(long i = 100; i < credit_number*10; i *= 100) //Step 1
     {
        long separated_numbers = credit_number % i;
        for(long j = 10; j < credit_number*10; j *= 100)
@@ -75,7 +83,7 @@ bool CheckSum(credit_number)
                break;
           }
    }
-   for(long s = 10; s < credit_number*10; s *= 100)
+   for(long s = 10; s < credit_number*10; s *= 100) //Step 2
      {
           long separated_numbers2 = credit_number % s;
           for(long a = 10; a < credit_number*10; a *= 100)
@@ -96,7 +104,7 @@ bool CheckSum(credit_number)
                break;
           }
    }
-   int final_sum = first_sum + second_sum;
+   int final_sum = first_sum + second_sum; //Step 3
     if (final_sum % 10 == 0)
     {
         return true;
