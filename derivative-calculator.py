@@ -21,20 +21,19 @@ possible_operations = ["*", "/", "+", "-", "^"]
 def derivative(function_to_derive):
     #check which derivative rule to apply (product or quotient), if necessary
         #do the derivative 
-    
-    function_to_derive = remove_extra_brackets(function_to_derive)
     function_to_derive = function_to_derive.replace(" ", "")
+    function_to_derive = remove_extra_brackets(function_to_derive)
     
     split_multi = do_apply_product(function_to_derive)
     split_div = do_apply_quotient(function_to_derive)
 
     if type(split_multi) != bool:
         #call function that splits function_to_derive at the multiplication
-        return apply_product_rule(remove_extra_brackets(function_to_derive[: split_multi]), remove_extra_brackets(function_to_derive[split_multi + 1 :]))
+        return apply_product_rule(function_to_derive[1 : split_multi], remove_extra_brackets(function_to_derive[split_multi + 1 : len(function_to_derive) - 1]))
     elif type(split_div) != bool:
         #call function that splits function_to_derive at the division
-        return apply_quotient_rule(remove_extra_brackets(function_to_derive[: split_div]), remove_extra_brackets(function_to_derive[split_div + 1 :]))
-    elif do_addition_or_substraction(function_to_derive) == True:
+        return apply_quotient_rule(function_to_derive[1 : split_div], function_to_derive[split_div + 1 : len(function_to_derive) - 1])
+    elif do_addition_or_substraction(function_to_derive):
         #find the first part of function_to_derive (by finding the first addition or minus symbol)
         #derive that part and apply the chain rule, if necessary
         return addition_or_substraction_derivative(function_to_derive)
@@ -53,10 +52,10 @@ def derivative(function_to_derive):
     if len(function_to_derive) >= 3:
         function_to_derive = str(first_pop) + function_to_derive + str(last_pop)
 
-    if check_if_base_other_than_polynomial(function_to_derive) == True:
+    if check_if_base_other_than_polynomial(function_to_derive):
         return find_function(function_to_derive)
     elif type(check_if_polynomial(function_to_derive)) != bool:
-            return help_with_power_functions(check_if_polynomial(function_to_derive))
+        return help_with_power_functions(check_if_polynomial(function_to_derive))
     else:
         return "something ain't right...."
     
@@ -323,9 +322,25 @@ def addition_or_substraction_derivative(fx):
     index_of_symbol = list_with_index[min_index]      
     return f"{derivative(fx[: index_of_symbol])} {fx[index_of_symbol]} {derivative(fx[index_of_symbol + 1 :])}"
     
+def check_for_valid_brackets(fx):
+    count_of_open_brackets = 0
+    for i in fx:
+        if i == "(":
+            count_of_open_brackets += 1
+        elif i == ")":
+            count_of_open_brackets -= 1
+
+        if count_of_open_brackets == -1:
+            raise Exception("Too many closed brackets!")
+        
+    if count_of_open_brackets != 0:
+        raise Exception("Too many opening brackets!")
+    else:
+        return True
+
 def remove_extra_brackets(fx):
 #removes any unecessary brackets. To be called after every recursive call of derivative()
-    bracket_count = 0
+    '''bracket_count = 0
     for i in range(len(fx)):
         if fx[i] == "(":
             bracket_count += 1
@@ -337,7 +352,7 @@ def remove_extra_brackets(fx):
         fx.pop(0)
     elif bracket_count == -1:
         fx.pop(-1)
-    fx = "".join(fx)
+    fx = "".join(fx) '''
     
     indexes_of_protected_brackets = []
     i = 0
@@ -397,6 +412,16 @@ def remove_extra_brackets(fx):
     fx = "".join(fx)
     return fx         
 
-function_to_derive = input("Please input your function here: ")
+def get_function():
+    function_to_derive = input("Please input your function here: ")
+
+    if (len(function_to_derive) == 0):
+        get_function()
+    if (function_to_derive[0] != "(" or function_to_derive[-1] != ")" or not check_for_valid_brackets(function_to_derive)):
+        get_function()
+    else:
+        return function_to_derive
+
+function_to_derive = get_function()
 
 print(derivative(function_to_derive))
