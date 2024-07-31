@@ -28,8 +28,8 @@ def derivative(function_to_derive):
     first_operation = find_least_indented_operator(function_to_derive)
 
     if (type(first_operation) == list and first_operation[0] != ''):
-        fx = remove_extra_brackets(function_to_derive[ : first_operation[1]] + ")")
-        gx = remove_extra_brackets("(" + function_to_derive[first_operation[1] + 1 :])
+        fx = remove_extra_brackets(function_to_derive[ : first_operation[1]])
+        gx = remove_extra_brackets(function_to_derive[first_operation[1] + 1 :])
 
         if first_operation[0] == "*":
             return apply_product_rule(fx, gx)
@@ -52,15 +52,15 @@ def derivative(function_to_derive):
 
         if outside_function in list_of_pre:
             if outside_function == "cos":
-                return f"-sin({function_to_derive[4: ]}*({derivative("(" + function_to_derive[4: ])})"
+                return f"-sin({function_to_derive[4: ]}*({derivative(function_to_derive[4 : -1])})"
             elif outside_function == "sin":
-                return f"cos({function_to_derive[4: ]}*({derivative("(" + function_to_derive[4: ])})"
+                return f"cos({function_to_derive[4: ]}*({derivative(function_to_derive[4 : -1])})"
             elif outside_function == "tan":
-                return f"sec^(2)({function_to_derive[4: ]}*({derivative("(" + function_to_derive[4: ])})"
+                return f"sec^(2)({function_to_derive[4: ]}*({derivative(function_to_derive[4 : -1])})"
             elif outside_function == "ln":
-                return f"(1/({function_to_derive[3: ]})*({derivative("(" + function_to_derive[3: ])})"
+                return f"(1/({function_to_derive[3: ]})*({derivative(function_to_derive[3 : -1])})"
             elif outside_function == "e^":
-                return f"(e^({function_to_derive[3: ]})*({derivative("(" + function_to_derive[3: ])})"
+                return f"(e^{function_to_derive[3: ]}*({derivative(function_to_derive[3 : -1])})"
             else:
                 return 0
         else:
