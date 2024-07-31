@@ -1,4 +1,5 @@
 #This program calculates the derivative of common functions and can apply the chain rule. 
+import math
 
 dict_with_base_functions = {
     'cos(x)': "-sin(x)",
@@ -16,52 +17,61 @@ list_for_cancel_poly = ["^"]
 
 list_of_pre = ["cos", "sin", "ln", "tan", "e^"]
 
-possible_operations = ["*", "/", "+", "-", "^"]
-
 def derivative(function_to_derive):
     #check which derivative rule to apply (product or quotient), if necessary
         #do the derivative 
+    if (function_to_derive == "" or function_to_derive == None):
+        return ""
+
     function_to_derive = function_to_derive.replace(" ", "")
-    function_to_derive = remove_extra_brackets(function_to_derive)
-    
-    split_multi = do_apply_product(function_to_derive)
-    split_div = do_apply_quotient(function_to_derive)
 
-    if type(split_multi) != bool:
-        #call function that splits function_to_derive at the multiplication
-        return apply_product_rule(function_to_derive[1 : split_multi], remove_extra_brackets(function_to_derive[split_multi + 1 : len(function_to_derive) - 1]))
-    elif type(split_div) != bool:
-        #call function that splits function_to_derive at the division
-        return apply_quotient_rule(function_to_derive[1 : split_div], function_to_derive[split_div + 1 : len(function_to_derive) - 1])
-    elif do_addition_or_substraction(function_to_derive):
-        #find the first part of function_to_derive (by finding the first addition or minus symbol)
-        #derive that part and apply the chain rule, if necessary
-        return addition_or_substraction_derivative(function_to_derive)
+    first_operation = find_least_indented_operator(function_to_derive)
 
-    #check if remaining function is one of the base cases   
+    if (type(first_operation) == list and first_operation[0] != ''):
+        fx = remove_extra_brackets(function_to_derive[ : first_operation[1]] + ")")
+        gx = remove_extra_brackets("(" + function_to_derive[first_operation[1] + 1 :])
 
-    if len(function_to_derive) >= 3:
-        function_to_derive = list(function_to_derive)
-        first_pop = function_to_derive.pop(0)
-        last_pop = function_to_derive.pop(-1)
-        function_to_derive = "".join(function_to_derive)
+        if first_operation[0] == "*":
+            return apply_product_rule(fx, gx)
+        elif first_operation[0] == "/":
+            return apply_quotient_rule(fx, gx)
+        elif first_operation[0] == "+":
+            return f"{derivative(fx)}+{derivative(gx)}"
+        elif first_operation[0] == "-":
+            return f"{derivative(fx)}-{derivative(gx)}"
+        else:
+            raise Exception("The operations don't match. Don't know how that's possible")
 
-    if function_to_derive.isnumeric():
-        return "0"
-    
-    if len(function_to_derive) >= 3:
-        function_to_derive = str(first_pop) + function_to_derive + str(last_pop)
-
-    if check_if_base_other_than_polynomial(function_to_derive):
-        return find_function(function_to_derive)
-    elif type(check_if_polynomial(function_to_derive)) != bool:
-        return help_with_power_functions(check_if_polynomial(function_to_derive))
     else:
-        return "something ain't right...."
+        '''
+        outside_function = IdentifyOutsideFunction()
+        apply chain rule
+            We need to take the derivative of the outside function and apply the chain rule if necessary
+        '''
+        outside_function = IdentifyOutsideFunction(function_to_derive)
+
+        if outside_function in list_of_pre:
+            if outside_function == "cos":
+                return f"-sin({function_to_derive[4: ]}*({derivative("(" + function_to_derive[4: ])})"
+            elif outside_function == "sin":
+                return f"cos({function_to_derive[4: ]}*({derivative("(" + function_to_derive[4: ])})"
+            elif outside_function == "tan":
+                return f"sec^(2)({function_to_derive[4: ]}*({derivative("(" + function_to_derive[4: ])})"
+            elif outside_function == "ln":
+                return f"(1/({function_to_derive[3: ]})*({derivative("(" + function_to_derive[3: ])})"
+            elif outside_function == "e^":
+                return f"(e^({function_to_derive[3: ]})*({derivative("(" + function_to_derive[3: ])})"
+            else:
+                return 0
+        else:
+            if "x" in function_to_derive:
+                return derive_power_function(function_to_derive)
+            else:
+                return 0
     
 def apply_product_rule(fx, gx): 
     #applies the product rule, by taking two functions as an input
-    return f"{derivative(fx)}*{gx} + {fx}*{derivative(gx)}"
+    return f"({derivative(fx)})*{gx} + {fx}*({derivative(gx)})"
 
 def apply_quotient_rule(fx, gx):
     #applies the quotient rule, by taking two functions as an input
@@ -87,34 +97,44 @@ def apply_chain_rule(fx):
     else:
         return f"{fx}"
 
-def help_with_power_functions(fx):
-    #Applies the power rule to a function
-    index_of_power = 0
+def IdentifyOutsideFunction(fx) -> str:
+    for i in range(len(fx) - 3):
+        if fx[i : i + 3] in list_of_pre:
+            return fx[i : i + 3]
+        elif fx[i : i + 2] in list_of_pre:
+            return fx[i : i + 2]
+    return ''
+
+
+def derive_power_function(fx) -> str:
+    index_of_base = 0
     for i in range(len(fx)):
-        if fx[i] == "^":
-            index_of_power = i
+        if fx[i] == "x":
+            index_of_base = i
             break
+    if fx[index_of_base + 1 : index_of_base + 3] == ")^":
+        starting_nest = 1
+        for i in range(len(fx[index_of_base + 1: ]), len(fx)):
+            if fx[i] == "(":
+                starting_nest += 1
+            elif fx[i] == ")":
+                starting_nest -= 1
 
-    if index_of_power == 0:
-        return f"1"
+            if starting_nest == 0:
+                coeff = fx[index_of_base + 4 : i]
+                try:
+                    exp = str(int(coeff) - 1)
+                except Exception:
+                    exp = f"({coeff} - 1)"
+                finally:
+                    if "x" in coeff:
+                        return f"({coeff})*(x)^({derivative(exp)})"
+                    else:
+                        return f"({coeff})*(x)^({exp})"
+        return "1"
+    else:
+        return "1"
 
-    fx = list(fx)
-    fx.pop(0)
-    fx.pop(-1)
-    index_of_power -= 1
-    fx = "".join(fx)
-    fx = fx.replace("(", "")
-    fx = fx.replace(")", "")
-    
-    place_of_coef = fx[: index_of_power - 1]
-    place_of_power = fx[index_of_power + 1 :]
-    
-    coef = int(place_of_power)
-    power = int(place_of_power) - 1
-    
-    derivative = f"({coef}x^({power}))"
-    
-    return derivative
             
 def find_function(fx):
     #determines what inner function of fx to derive first and returns the derivative, while applying the chain rule
@@ -339,88 +359,77 @@ def check_for_valid_brackets(fx):
         return True
 
 def remove_extra_brackets(fx):
-#removes any unecessary brackets. To be called after every recursive call of derivative()
-    '''bracket_count = 0
-    for i in range(len(fx)):
-        if fx[i] == "(":
-            bracket_count += 1
-        elif fx[i] == ")":
-            bracket_count -= 1
-            
-    fx = list(fx)
-    if bracket_count == 1:
-        fx.pop(0)
-    elif bracket_count == -1:
-        fx.pop(-1)
-    fx = "".join(fx) '''
-    
-    indexes_of_protected_brackets = []
-    i = 0
-    while i < len(fx) and len(fx) >= 3:
-        if fx[i : i + 3] == "cos" or fx[i : i + 3] == "sin":
-            bracket_count = 0
-            done_with_function = False
-            i += 3
-            indexes_of_protected_brackets.append(i)
-            while not done_with_function:
-                if fx[i] == "(":
-                    bracket_count += 1
-                elif fx[i] == ")":
-                    bracket_count -= 1
-                
-                if bracket_count == 0:
-                    indexes_of_protected_brackets.append(i)
-                    done_with_function = True
-                i += 1
-        i += 1
-
-    i = 0
-    while i < len(fx) and len(fx) >= 3:
-        if fx[i] == "^" or fx[i] == "n":
-            bracket_count = 0
-            done_with_function = False
-            i += 1
-            indexes_of_protected_brackets.append(i)
-            while not done_with_function:
-                if fx[i] == "(":
-                    bracket_count += 1
-                elif fx[i] == ")":
-                    bracket_count -= 1
-                
-                if bracket_count == 0:
-                    indexes_of_protected_brackets.append(i)
-                    done_with_function = True
-                i += 1
-        i += 1
-        
-    fx = list(fx)
-    j = 0
-    pop_count = 0
-    while j < len(fx) - pop_count:
-        if (fx[j] in list_for_check_poly) and (fx[j] == fx[j + 1]) and (j not in indexes_of_protected_brackets) and (j + 1 not in indexes_of_protected_brackets):
-            for i in range(len(indexes_of_protected_brackets)):
-                if indexes_of_protected_brackets[i] > j:
-                    indexes_of_protected_brackets[i] -= 1 
-            fx.pop(j)
-            pop_count += 1
+    try: 
+        check_for_valid_brackets(fx)
+    except Exception:
+        bracket_count = 0
+        for i in fx:
+            if i == "(":
+                bracket_count += 1
+            elif i == ")":
+                bracket_count -= 1
+        if bracket_count > 0:
+            return fx[1: ]
         else:
-            j += 1
-            
-        if j + 1 == len(fx):
-            break
+            return fx[ :-1]
+    return fx
         
-    fx = "".join(fx)
-    return fx         
-
 def get_function():
     function_to_derive = input("Please input your function here: ")
 
     if (len(function_to_derive) == 0):
-        get_function()
+        return get_function()
     if (function_to_derive[0] != "(" or function_to_derive[-1] != ")" or not check_for_valid_brackets(function_to_derive)):
-        get_function()
+        return get_function()
     else:
         return function_to_derive
+
+def find_least_indented_operator(fx) -> list or sentinel (-1):
+    indexes_of_operators = []
+    for i in range(len(fx)):
+        if fx[i] in possible_operations:
+            indexes_of_operators.append(i)
+
+    if (len(indexes_of_operators) == 0):
+        return -1
+
+    nested_level = 0
+    lowest_nested_level = math.inf   
+    current_operator = ""     
+    index_of_operator = 0                             
+    for i in range(len(fx)):
+        if fx[i] == "(":
+            nested_level += 1
+        elif fx[i] == ")":
+            nested_level -= 1
+
+        if i in indexes_of_operators and nested_level < lowest_nested_level and not is_inside_function(fx, i): #this line checks if the index of fx is the least indented operator yet and if said operator is NOT part of a function parameter
+            lowest_nested_level = nested_level
+            current_operator = fx[i]
+            index_of_operator = i
+    return [current_operator, index_of_operator]
+
+def is_inside_function(fx, index) -> bool: #this method verifies if a certain index is contained in the argument of the following functions: cos(), sin() and ln() | O(n)
+    level_of_nest = 0
+    for i in range(len(fx[: index])):
+        if fx[i] == "(":
+            level_of_nest += 1
+        elif fx[i] == ")":
+            level_of_nest -= 1
+    
+    current_nest = 0
+    for i in range(len(fx[: index])):
+        if fx[i] == "(":
+            current_nest += 1
+        elif fx[i] == ")":
+            current_nest -= 1
+
+        if fx[i : i + 3] in list_of_pre or fx[i : i + 2] in list_of_pre:
+            current_nest += 1
+            if level_of_nest >= current_nest:
+                return True
+    return False
+
 
 function_to_derive = get_function()
 
