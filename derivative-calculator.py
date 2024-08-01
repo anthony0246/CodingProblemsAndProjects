@@ -71,11 +71,11 @@ def derivative(function_to_derive):
     
 def apply_product_rule(fx, gx): 
     #applies the product rule, by taking two functions as an input
-    return f"({derivative(fx)})*{gx} + {fx}*({derivative(gx)})"
+    return f"({derivative(fx)}*{gx}) + ({fx}*{derivative(gx)})"
 
 def apply_quotient_rule(fx, gx):
     #applies the quotient rule, by taking two functions as an input
-    return f"({derivative(fx)}*{gx} - {fx}*{derivative(gx)}/{gx}^2"
+    return f"(({derivative(fx)}*{gx}) - ({fx}*{derivative(gx)}))/{gx}^2"
 
 def apply_chain_rule(fx):
     #applies the chain rule to function after they are derived, in order to account for nested functions
