@@ -1,115 +1,95 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include <math.h>
 
-bool checkSum(credit_number);
+//Verifies if a credit car number is valid.
+//Step 1: Take the sum of every other digit (that has been doubled) starting with the second last one.
+//Step 2: Take the sum of every other digit starting with the last one. 
+//Step 3: Add these two sums together. If the result is cleanly divisible by 10, then the credit card number is valid.
+bool isValid(unsigned long long credit_number) {
+    unsigned long long previous_value = 0;
+    unsigned long long current_digit_s = 0;
+    unsigned long long current_value = 0;
+    unsigned long long i = 10;
+    int total_sum = 0;
+    bool even = false;
 
-int main(void)
-{
-    int credit_number;
-    do
-    {
-          credit_number = get_long("What is your credit card number: \n");
+    while (previous_value != credit_number) {
+          current_value = (credit_number) % i;
+
+          current_digit_s = (current_value - previous_value);
+          current_digit_s = (current_digit_s * 10) / i;
+          current_digit_s *= 2;
+
+          previous_value = current_value;
+
+          if (even) {
+               if (current_digit_s >= 10) {
+                    total_sum += (1 + current_digit_s % 10);
+               }
+               else {
+                    total_sum += current_digit_s;
+               }
+          }
+          else {
+               total_sum += (current_digit_s / 2);
+          }
+          i *= 10;
+          even = !even;
     }
-    while (credit_number >= 1*pow(10,17) && credit_number <= 1*pow(10,13));  //get user's credit card number
 
-    if (CheckSum(credit_number))
-    {
-    long american_express_digits = 100000000000000;
-    long mastercard_digits = 1000000000000000;
-    long visa_digits = 1000000000000;
-    long calculation_american_express = credit_number - (credit_number % (american_express_digits/10));
-    long calculation_mastercard = credit_number - (credit_number % (mastercard_digits/10));
-        //check which provider the credit car number belongs too, based on length:
-        //(mastercard = 16 digits, beginning with a 5), 
-        //(american express = 14 digits, beginning with a 34 or 37),
-        //(visa = 15 digits, beginning with a 4)
-        if (calculation_mastercard == 5.1*(pow(10, 15)) || calculation_mastercard == 5.2*(pow(10, 15)) || calculation_mastercard == 5.3*(pow(10, 15)) || calculation_mastercard == 5.4*(pow(10, 15)) || calculation_mastercard == 5.5*(pow(10, 15)))
-          {
-          if (credit_number % (mastercard_digits/10) < 1.0000000000000001*pow(10,16) || credit_number % (mastercard_digits/10) > 0.9999999999999999*pow(10,15))
-               {
-                    printf("You have a mastercard credit card.\n");
-               }
-          }
-         else if (calculation_american_express == 3.4*pow(10,14)|| calculation_american_express == 3.7*pow(10,14))
-          {
-               if (credit_number % american_express_digits < 1.000000000000001*pow(10,15) || credit_number % american_express_digits > 0.99999999999999*pow(10,14))
-               {
-               printf("You have an american express credit card.\n");
-               }
-          }
-         else if (credit_number - (credit_number % (visa_digits*1000)) == 4*pow(10,15) || credit_number - (credit_number % (visa_digits*100)) == 4*pow(10,15) || credit_number - (credit_number % (visa_digits*10)) == 4*pow(10,15) || credit_number - (credit_number % (visa_digits)) == 4*pow(10,15))
-               {
-                    printf("You have a visa credit card.\n");
-               }
-         else
-               {
-                    printf("Invalid credit card number.\n");
-               }
-     }
-     else
-     {
-          printf("Invalid credit card number.\n");
-     }
+    if (total_sum % 10 == 0) {
+          return true;
+    }
+    return false;
 }
 
-bool CheckSum(credit_number) 
-//verifies if a credit car number is valid,
-//Step 1: Take the sum of all the even digits, which have been doubled | sum1
-//Step 2: Take the sum of all the odd digits (untouched) | sum2
-//Step 3: Take the sum of sum1 and sum2 and see if it is cleanly divisible by 10
-{
-    int iteration_count = 0;
-    int iteration_count2 = 0;
-    int first_sum = 0;
-    int second_sum = 0;
-    for(long i = 100; i < credit_number*10; i *= 100) //Step 1
-    {
-       long separated_numbers = credit_number % i;
-       for(long j = 10; j < credit_number*10; j *= 100)
-          {
-               j = 10 *(pow(100,iteration_count));
-               if (j == 0)
-               {
-                    j = 10;
-               }
-               long remainder = separated_numbers % j;
-               int individual_numbers = (separated_numbers - remainder) / j;
-               individual_numbers *= 2;
-               int remainder_sum1 = individual_numbers % 10;
-               int first_digit_individual_numbers = individual_numbers/10;
-               first_sum += first_digit_individual_numbers + remainder_sum1;
-               iteration_count++;
-               break;
+//Removes one digit at a time from "credit_number" to determine its number of digits.
+int getNumDigits(unsigned long long credit_number) {
+     int numDigits = 0;
+     while(credit_number > 0) {
+          credit_number = credit_number / 10;
+          numDigits++;
+     }
+     return numDigits;
+}
+
+int main(void) {
+     unsigned long long credit_number;
+
+     printf("Enter a long integer: ");
+     scanf("%llu", &credit_number);
+
+     if (isValid(credit_number)) {
+          int num_digits = getNumDigits(credit_number);
+          int first_digit = 0;
+          int first_two_digits = 0;
+
+          for(int i = 0; i < num_digits - 2; i++) {
+               credit_number = credit_number / 10;
           }
-   }
-   for(long s = 10; s < credit_number*10; s *= 100) //Step 2
-     {
-          long separated_numbers2 = credit_number % s;
-          for(long a = 10; a < credit_number*10; a *= 100)
-          {
-               a = 1*(pow(100, iteration_count2));
-               long remainder2 = separated_numbers2 % a;
-               if (separated_numbers2 % a == separated_numbers2)
-               {
-                    remainder2 = 0;
-               }
-               int individual_numbers2 = (separated_numbers2 - remainder2) / a;
-               if (individual_numbers2 < 1)
-                    {
-                         individual_numbers2 *= 10;
-                    }
-               second_sum += individual_numbers2;
-               iteration_count2++;
-               break;
+          first_digit = credit_number / 10;
+          first_two_digits = credit_number;
+
+          //Conditions for Visa: 13 or 16 digits | Begins with "4"
+          if ((num_digits == 13 || num_digits == 16) && (first_digit == 4)) {
+               printf("Visa credit card!");
           }
-   }
-   int final_sum = first_sum + second_sum; //Step 3
-    if (final_sum % 10 == 0)
-    {
-        return true;
-    }
-    else {
-        return false;
-    }
+          //Conditions for MasterCard: 16 digits | Begins with "51", "52", "53", "54" or "55".
+          else if ((num_digits == 16) && first_two_digits <= 55 && first_two_digits >= 51) {
+                printf("MasterCard credit card!");
+          }
+          //Conditions for American Express: 15 digits | Begins with "34" or "37"
+          else if ((num_digits == 15) && (first_two_digits == 34 || first_two_digits == 37)) {
+                printf("American Express credit card!");
+          }
+          else {
+               printf("The credit card has valid digits, but an unrecognisable provider!");
+          }
+     }
+     else {
+          printf("Invalid credit card number!");
+     }
 }
